@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+docker run \
+  -it \
+  -v $(pwd):/workdir \
+  -v ~/.aws:/home/user/.aws \
+  -e LOCAL_USER_ID=$(id -u) \
+  --rm \
+  aserv92/docker-aws-cli:1.14.44 "$@"

@@ -11,8 +11,6 @@ RUN set -eu pipefail && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ADD entrypoint.sh /opt/aws-docker/entrypoint.sh
-
 WORKDIR /workdir
 
-ENTRYPOINT ["/opt/aws-docker/entrypoint.sh"]
+CMD ["aws"]

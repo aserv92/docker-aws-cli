@@ -1,4 +1,4 @@
-FROM chekote/ubuntu:bionic-d
+FROM chekote/ubuntu:noble-2025-01-08
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends --no-install-suggests \

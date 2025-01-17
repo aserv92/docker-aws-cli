@@ -1,6 +1,7 @@
 FROM chekote/ubuntu:noble-2025-01-08
 
-RUN apt-get update && \
+RUN set -eu pipefail && \
+    apt-get update && \
     apt-get install -y --no-install-recommends --no-install-suggests \
     groff \
     less \

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export AWS_VERSION="2.15.57-r0"
+
+export REPOSITORY=aserv92/docker-aws-cli
+
+export PLATFORMS='linux/amd64,linux/arm64'
+
+docker buildx \
+  build \
+  --push \
+  -t "${REPOSITORY}:latest" \
+  -t "${REPOSITORY}:${AWS_VERSION}" \
+  -t "${REPOSITORY}:${AWS_VERSION}-$(git rev-parse --short HEAD)" \
+  --build-arg "AWS_VERSION=${AWS_VERSION}" \
+  --platform ${PLATFORMS} \
+  .

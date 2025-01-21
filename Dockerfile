@@ -1,4 +1,4 @@
-FROM chekote/ubuntu:noble-2025-01-08
+FROM chekote/alpine:3.20.2-2024-09-13-09-41-31
 
 RUN set -eu pipefail && \
     apt-get update && \

@@ -1,23 +1,24 @@
-# Docker image for the AWS Command Line Interface
+# Docker AWS CLI
 
 A [Docker](https://www.docker.com) image for the AWS Command Line Interface
 
-To use the container with a project, do the following:
+## Directories
+- `/home/user/.aws` This is the AWS configuration directory. Mount this to your local user account to use your AWS configuration
+- `/workdir` This is the working directory that is set when tyhe container starts
 
-  * Copy the bin directory into your project.
+## User ID control
 
-  * Ensure that your profile PATH includes `./bin` and that it takes priority over any other directory that may include a aws executable:
+It is possible to control the UID the initial process runs as. This is important if you are mounting a volumes into the container, as the the UID of the initial process will likely need to match the permissions of the volume to be able to read and/or write to it.
 
-        PATH=./bin:$PATH
+Note: You should **NOT** try to set the UID using Dockers -u or --user option, as this does not ensure that the user actually exists (entry in `/etc/passwd`, home directory, etc).
 
-Now whenever you are in your project's directory, you can simply execute `aws` and the command will execute in the container instead.
-
-# User ID control
-
-It is possible to control what UID the initial process. The `/usr/bin/aws` file already does this for the initial process.
-
-This is important if you are mounting a volumes into the container, as the the UID of the initial process will likely need to match the volume to be able to read and/or write to it.
-
-Note: You should _NOT_ try to set the UID using Dockers -u or --user option, as this does not ensure that the user actually exists (entry in `/etc/passwd` home directory etc).
-
-Based on https://github.com/Chekote/docker-ubuntu
+## Example usage
+```bash
+docker run \
+  -it \
+  -v $(pwd):/workdir \
+  -v ~/.aws:/home/user/.aws \
+  -e LOCAL_USER_ID=$(id -u) \
+  --rm \
+  aserv92/docker-aws-cli:latest aws --version
+```

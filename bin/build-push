@@ -4,7 +4,7 @@ set -euo pipefail
 
 export AWS_VERSION="2.15.57-r0"
 
-export REPOSITORY=aserv92/docker-aws-cli
+export REPOSITORY=aserv92/aws-cli
 
 export PLATFORMS='linux/amd64,linux/arm64'
 

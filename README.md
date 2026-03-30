@@ -2,6 +2,11 @@
 
 A [Docker](https://www.docker.com) image for the AWS Command Line Interface
 
+View on Docker Hub [aserv92/aws-cli](https://hub.docker.com/r/aserv92/aws-cli)
+
+## Why?
+This image allows you to control the user ID that the main process inside the container runs as.
+
 ## Directories
 - `/home/user/.aws` This is the AWS configuration directory. Mount this to your local user account to use your AWS configuration
 - `/workdir` This is the working directory that is set when tyhe container starts

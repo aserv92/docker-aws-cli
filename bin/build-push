@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-export AWS_VERSION="2.15.57-r0"
+export AWS_VERSION="2.32.7-r0"
 
 export REPOSITORY=aserv92/aws-cli
 

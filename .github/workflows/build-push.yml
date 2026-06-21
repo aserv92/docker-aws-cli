@@ -1,0 +1,15 @@
+name: Build and Push
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  push:
+    branches:
+      - master
+
+jobs:
+  build-push:
+    uses: aserv92/libraries/.github/workflows/docker-build-push.yml@017ec9b9a7e17d5f55d375270b461f7300768ae8
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

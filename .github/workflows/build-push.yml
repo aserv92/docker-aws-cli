@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-push:
-    uses: aserv92/libraries/.github/workflows/docker-build-push.yml@4455094bb3a79c3b208b3a1626bfb319fb31b21f
+    uses: aserv92/libraries/.github/workflows/docker-build-push.yml@1.0.0
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

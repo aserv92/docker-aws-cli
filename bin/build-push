@@ -2,16 +2,52 @@
 
 set -euo pipefail
 
-export AWS_VERSION="2.32.7-r0"
+source ./libraries/bash/docker/alpine.sh
+source ./libraries/bash/docker/alpine/apk.sh
+source ./libraries/bash/docker/architectures.sh
+source ./libraries/bash/docker/registry.sh
+source ./libraries/bash/env.sh
+source ./libraries/bash/output.sh
 
-export REPOSITORY=aserv92/aws-cli
+output.info "Loading build environment..."
+env.load build
 
-docker buildx \
-  build \
-  --push \
-  -t "${REPOSITORY}:latest" \
-  -t "${REPOSITORY}:${AWS_VERSION}" \
-  -t "${REPOSITORY}:${AWS_VERSION}-$(git rev-parse --short HEAD)" \
-  --build-arg "AWS_VERSION=${AWS_VERSION}" \
-  --platform 'linux/amd64,linux/arm64' \
-  .
+output.info "Starting Alpine container..."
+docker.alpine.start "$ALPINE_APK_IMAGE"
+set -E
+trap 'docker.alpine.remove' ERR
+
+for TARGET_ARCH in $TARGET_ARCHS; do
+  ALPINE_ARCH=${DOCKER_ARCHS_TO_LINUX_ARCHS[$TARGET_ARCH]}
+  output.info "Updating $ALPINE_ARCH APK packages..."
+  docker.alpine.apk.update "$ALPINE_ARCH"
+done
+
+declare -A BUILDS
+
+for TARGET_ARCH in $TARGET_ARCHS; do
+  LINUX_ARCH=${DOCKER_ARCHS_TO_LINUX_ARCHS[$TARGET_ARCH]}
+  LATEST_AWS_VERSION=$(docker.alpine.apk.query.version "$LINUX_ARCH" aws-cli)
+  if [[ $(docker.registry.tag.exists.for.arch "$DOCKER_REGISTRY" "$LATEST_AWS_VERSION" "$TARGET_ARCH") = 'yes' ]]; then
+    output.info "Image with aws-cli version ($LATEST_AWS_VERSION) already exists for $TARGET_ARCH. (skipping)"
+    continue
+  fi
+  output.info "Adding aws-cli version $LATEST_AWS_VERSION ($LINUX_ARCH) to build list."
+  BUILDS[$LATEST_AWS_VERSION]+="${BUILDS[$LATEST_AWS_VERSION]:+,}$TARGET_ARCH"
+done
+
+for AWS_CLI_VERSION in "${!BUILDS[@]}"; do
+  output.info "Building aws-cli version $AWS_CLI_VERSION (${BUILDS[$AWS_CLI_VERSION]})"
+  docker buildx build \
+    --push \
+    -t "${DOCKER_REGISTRY}:latest" \
+    -t "${DOCKER_REGISTRY}:${AWS_CLI_VERSION}" \
+    -t "${DOCKER_REGISTRY}:${AWS_CLI_VERSION}-$(git rev-parse --short HEAD)" \
+    --build-arg "AWS_CLI_VERSION=${AWS_CLI_VERSION}" \
+    --build-arg "BASE_ALPINE_IMAGE=${BASE_ALPINE_IMAGE}" \
+    --platform "${BUILDS[$AWS_CLI_VERSION]}" \
+    .
+done
+
+output.info "Removing Alpine container..."
+docker.alpine.remove

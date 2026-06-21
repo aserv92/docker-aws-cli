@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+BASH_LIBRARIES_DIR='./libraries/bash'
+
+source ./libraries/bash/docker.sh
 source ./libraries/bash/docker/alpine.sh
 source ./libraries/bash/docker/alpine/apk.sh
 source ./libraries/bash/docker/architectures.sh
@@ -13,9 +16,11 @@ output.info "Loading build environment..."
 env.load build
 
 output.info "Starting Alpine container..."
-docker.alpine.start "$ALPINE_APK_IMAGE"
+docker.alpine.start "$BASE_ALPINE_IMAGE"
 set -E
 trap 'docker.alpine.remove' ERR
+
+LATEST_ALPINE_VERSION=$(docker.alpine.minor.version)
 
 for TARGET_ARCH in $TARGET_ARCHS; do
   ALPINE_ARCH=${DOCKER_ARCHS_TO_LINUX_ARCHS[$TARGET_ARCH]}
@@ -29,8 +34,10 @@ for TARGET_ARCH in $TARGET_ARCHS; do
   LINUX_ARCH=${DOCKER_ARCHS_TO_LINUX_ARCHS[$TARGET_ARCH]}
   LATEST_AWS_VERSION=$(docker.alpine.apk.query.version "$LINUX_ARCH" aws-cli)
   if [[ $(docker.registry.tag.exists.for.arch "$DOCKER_REGISTRY" "$LATEST_AWS_VERSION" "$TARGET_ARCH") = 'yes' ]]; then
-    output.info "Image with aws-cli version ($LATEST_AWS_VERSION) already exists for $TARGET_ARCH. (skipping)"
-    continue
+    if [[ "$(docker.run "$DOCKER_REGISTRY:$LATEST_AWS_VERSION" cat /etc/alpine-release | cut -d. -f1,2)" = "$LATEST_ALPINE_VERSION" ]]; then
+      output.info "Image with aws-cli($LATEST_AWS_VERSION) with Alpine($LATEST_ALPINE_VERSION) already exists for $TARGET_ARCH. (skipping)"
+      continue
+    fi
   fi
   output.info "Adding aws-cli version $LATEST_AWS_VERSION ($LINUX_ARCH) to build list."
   BUILDS[$LATEST_AWS_VERSION]+="${BUILDS[$LATEST_AWS_VERSION]:+,}$TARGET_ARCH"
